@@ -11,16 +11,17 @@
 </head>
 
 <body>
+    <div style="{margin: 20px 0px 0px 10px;}">
+        <h1>Testo</h1>
 
-    <h1>Testo</h1>
-
-    <!-- msg area -->
-    <p id="connect-status">Connect status :-</p>
-    <p id="motion">Motion : -</p>
-    <!-- <button type="button" onclick="toggleFloor()">toggle floor wireframe</button> -->
-    <div id="input-field">
-        <input type="number" name="rotateSpeed" id="angleInput" value="2">
-        <button onclick="setSpeed()" class="btn draw-border">set speed</button>
+        <!-- msg area -->
+        <p id="connect-status">Connect status :-</p>
+        <p id="motion">Motion : -</p>
+        <!-- <button type="button" onclick="toggleFloor()">toggle floor wireframe</button> -->
+        <div id="input-field">
+            <input type="number" name="rotateSpeed" id="angleInput" value="2">
+            <button onclick="setSpeed()" id="button">set speed</button>
+        </div>
     </div>
 
     <script src="https://cdn.netpie.io/microgear.js"></script>
@@ -211,14 +212,14 @@
 
         window.addEventListener('keydown', keyDown);
         window.addEventListener('keyup', keyUp);
-        window.addEventListener('resize', function (){
+        window.addEventListener('resize', function () {
             var w = window.innerWidth;
             var h = window.innerHeight;
-            renderer.setSize(w,h);
+            renderer.setSize(w, h);
             camera.aspect;
         });
 
-        function setSpeed(){
+        function setSpeed() {
             angSpeed = parseInt(document.getElementById("angleInput").value);
         }
 
