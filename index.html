@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Testto</title>
+    <link rel="stylesheet" href="./style.css">
+
+</head>
+
+<body>
+
+    <h1>Testo</h1>
+
+    <!-- msg area -->
+    <p id="connect-status">Connect status :-</p>
+    <p id="motion">Motion : -</p>
+    <!-- <button type="button" onclick="toggleFloor()">toggle floor wireframe</button> -->
+    <div id="input-field">
+        <input type="number" name="rotateSpeed" id="angleInput" value="2">
+        <button onclick="setSpeed()" class="btn draw-border">set speed</button>
+    </div>
+
+    <script src="https://cdn.netpie.io/microgear.js"></script>
+    <script src="https://threejs.org/build/three.js"></script>
+    <script src="js/OrbitControl.js"></script>
+    <script>
+        const KEY = "gNDIpb2ltQZSqnJ";
+        const SECRET = "l1XiKZyVIgpp2qqhBF3VOadxT";
+        const APPID = "ThanosGauntlet";
+
+        const ALIAS = "Thanos";
+        const IOT = "Gauntlet";
+
+        var keyboard = {};
+        var player = { height: 3, speed: 0.1 };
+
+        var angSpeed = 2;
+        var motionx = 0;
+        var motiony = 0;
+        var anglex = 0;
+        var angley = 0;
+
+        var microgear = Microgear.create({
+            key: KEY,
+            secret: SECRET,
+            alias: ALIAS
+        });
+
+        microgear.on('message', function (topic, msg) {
+            // document.getElementById("msgText").innerHTML = "Arduino is better than stm32 shit and his msg is: " + msg;
+            // document.getElementById("topic").innerHTML = "Arduino is better than stm32 shit and his topic is: " + topic;
+            var data = String.fromCharCode(msg);
+            // console.log(msg);
+            // console.log("received!");
+            console.log(data);
+            if (data == "L") {
+                data = "Left";
+                anglex = 0;
+                angley = 0;
+                document.getElementById("motion").innerHTML = "Motion : " + data;
+                // motionx = -0.01;
+                anglex = -angSpeed;
+            }
+            else if (data == "R") {
+                data = "Right";
+                anglex = 0;
+                angley = 0;
+                document.getElementById("motion").innerHTML = "Motion : " + data;
+                anglex = angSpeed;
+            }
+            else if (data == "F") {
+                data = "Forward";
+                anglex = 0;
+                angley = 0;
+                document.getElementById("motion").innerHTML = "Motion : " + data;
+                angley = angSpeed;
+            }
+            else if (data == "B") {
+                data = "Backward";
+                anglex = 0;
+                angley = 0;
+                document.getElementById("motion").innerHTML = "Motion : " + data;
+                angley = -angSpeed;
+            }
+            else if (data == "W") {
+                data = "Stop";
+                anglex = 0;
+                angley = 0;
+                document.getElementById("motion").innerHTML = "Motion : " + data;
+            }
+            console.log(motionx);
+            console.log(motiony);
+
+        });
+
+        microgear.on('connected', function () {
+            microgear.setAlias(ALIAS);
+            document.getElementById("connect-status").innerHTML = "Connect status: Connected to NETPIE";
+            console.log("connected");
+        });
+
+        microgear.on('present', function (event) {
+            console.log(event);
+        });
+
+        microgear.on('absent', function (event) {
+            console.log(event);
+        });
+
+        microgear.resettoken(function (err) {
+            microgear.connect(APPID);
+        });
+
+        function switchOn() {
+            microgear.chat(IOT, "1");
+            console.log("msg: On");
+        }
+
+        function switchOff() {
+            microgear.chat(IOT, "0");
+            console.log("msg: Off");
+        }
+        // Our Javascript will go here.
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth - 50, window.innerHeight - 50);
+        document.body.appendChild(renderer.domElement);
+
+        // cube
+        var geometry = new THREE.BoxGeometry(2, 2, 2);
+        var material = new THREE.MeshPhongMaterial({ color: 0x00ff00, wireframe: false });
+        var cube = new THREE.Mesh(geometry, material);
+        cube.receiveShadow = true;
+        cube.castShadow = true;
+        scene.add(cube);
+        cube.position.y += 2;
+        cube.rotation.x += 45;
+        cube.rotation.y += 45;
+
+        // floor
+        var floor = new THREE.Mesh(
+            new THREE.PlaneGeometry(10, 10, 10, 10),
+            new THREE.MeshPhongMaterial({ color: 0xffffff, wireframe: false })
+        );
+        floor.receiveShadow = true;
+        floor.castShadow = true;
+        scene.add(floor);
+        floor.rotation.x -= Math.PI / 2;
+
+        // light 
+        var amb = new THREE.AmbientLight(0xfffffff, 0.2);
+        scene.add(amb);
+        var light = new THREE.PointLight(0xffffff, 0.9, 18);
+        light.position.set(-1, 5, -3);
+        light.castShadow = true;
+        light.shadow.camera.near = 0.2;
+        light.shadow.camera.far = 25;
+        scene.add(light);
+
+
+
+
+        camera.position.set(3, player.height, -5);
+
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
+        // controls.autoRotate = true;
+
+
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // cube.position.x += motionx;
+            // cube.position.y += motiony;
+            if (keyboard[37]) {
+                camera.rotation.y += Math.PI * 0.01;
+            }
+            if (keyboard[39]) {
+                camera.rotation.y -= Math.PI * 0.01;
+            }
+            if (keyboard[87]) { // W key
+                camera.position.x -= Math.sin(camera.rotation.y) * player.speed;
+                camera.position.z -= Math.cos(camera.rotation.y) * player.speed;
+            }
+
+            controls.tryMeLR(anglex);
+            controls.tryMeUD(angley);
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+
+        // keyboard
+        function keyDown(event) {
+            keyboard[event.keyCode] = true;
+        }
+        function keyUp(event) {
+            keyboard[event.keyCode] = false;
+        }
+
+        function toggleFloor() {
+            floor.material.wireframe = !floor.material.wireframe;
+            scene.update();
+        }
+
+        window.addEventListener('keydown', keyDown);
+        window.addEventListener('keyup', keyUp);
+        window.addEventListener('resize', function (){
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            renderer.setSize(w,h);
+            camera.aspect;
+        });
+
+        function setSpeed(){
+            angSpeed = parseInt(document.getElementById("angleInput").value);
+        }
+
+    </script>
+
+
+    <div id="debug-light">
+        <p>Debug Light</p>
+        <button id="On-switch" onclick="switchOn()">LED On</button>
+        <button id="Off-Switch" onclick="switchOff()">LED Off</button>
+    </div>
+
+</body>
+
+</html>
